@@ -584,22 +584,53 @@ function triggerNotification(msg) {
     banner.classList.remove('hidden');
     setTimeout(() => banner.classList.add('hidden'), 5000);
 }
-// FUNGSI OTOMATIS: Memeriksa apakah ada parameter (?order=...) saat website dibuka
+// FUNGSI OTOMATIS: JALUR BYPASS PELANGGAN BELUM LOGIN AGAR BISA LACAK NOTA
 window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const orderParam = urlParams.get('order');
     
     if (orderParam) {
-        console.log("Mendeteksi permintaan pelacakan nota:", orderParam);
-        // Beri jeda 1.5 detik agar data dari cloud selesai di-download terlebih dahulu, baru tampilkan statusnya
-        setTimeout(() => {
-            const match = orders.find(o => o.id.toUpperCase() === orderParam.toUpperCase());
-            if (match) {
-                openLiveTrackingPreview(match.id);
-            } else {
-                console.log("Nota tidak ditemukan dalam database lokal.");
-            }
-        }, 1500);
+        console.log("Mendeteksi Pelanggan melakukan pelacakan nota:", orderParam);
+        
+        // 1. Amankan Tampilan: Sembunyikan layar login dan menu utama kasir
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        
+        // 2. Sembunyikan Header Kasir & Navigasi Bawah agar pelanggan tidak bisa otak-atik data POS
+        const headerKasir = document.querySelector('header');
+        if(headerKasir) headerKasir.classList.add('hidden');
+        
+        const navBawah = document.querySelector('nav');
+        if(navBawah) navBawah.classList.add('hidden');
+        
+        // 3. Tampilkan teks loading sementara di area tracking agar estetik
+        document.getElementById('track-id').innerText = "MENCARI DATA...";
+        document.getElementById('track-cust').innerText = "Sedang mengunduh data dari server...";
+        switchView('tracking');
+
+        // 4. Jalankan fetch langsung ke Google Sheets tanpa nunggu aksi login kasir
+        if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("TEMPEL_URL")) {
+            fetch(`${SCRIPT_URL}?action=read`)
+                .then(response => response.json())
+                .then(cloudData => {
+                    if (cloudData && cloudData.transactions) {
+                        orders = cloudData.transactions;
+                        
+                        // Cari nota yang pas
+                        const match = orders.find(o => o.id.toUpperCase() === orderParam.toUpperCase());
+                        if (match) {
+                            // Tampilkan status asli timeline baju milik pelanggan
+                            openLiveTrackingPreview(match.id);
+                        } else {
+                            document.getElementById('track-id').innerText = "TIDAK DITEMUKAN";
+                            document.getElementById('track-cust').innerText = "Maaf, nomor nota tersebut tidak terdaftar.";
+                        }
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('track-id').innerText = "KONEKSI GAGAL";
+                    document.getElementById('track-cust').innerText = "Gagal terhubung ke database. Coba segarkan halaman.";
+                });
+        }
     }
 });
-

@@ -1,5 +1,5 @@
 // BACKEND CONFIGURATION: Tempel tautan URL Google Apps Script Web App Anda di sini untuk sinkronisasi cloud
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEiNj70R9hdGUByJBAwrQ-0bFkVjdOcdOvJ86qQcqVvk8NrfQRsUkYlNAD3WbY6ECi/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec";
 
 // STATE VARIABEL & DATABASE LOCAL MEMORY
 let currentCashier = "";

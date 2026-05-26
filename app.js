@@ -1,5 +1,5 @@
 // BACKEND CONFIGURATION: Tempel tautan URL Google Apps Script Web App Anda di sini untuk sinkronisasi cloud
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec";
 
 // STATE VARIABEL & DATABASE LOCAL MEMORY
 let currentCashier = "";
@@ -88,7 +88,7 @@ function logoutCashier() {
 
 // AMBIL DATA DARI GOOGLE SPREADSHEET (ANTI-HILANG SETELAH LOGOUT / REFRESH)
 function loadDataFromCloud() {
-    if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) return;
+    if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec")) return;
     
     console.log("Sedang menyelaraskan data dengan Google Sheets...");
 
@@ -162,7 +162,7 @@ function saveNewService() {
     document.getElementById('serviceModal').classList.add('hidden');
     
     // KONEKSI PUSH CLOUD: Kirim menu layanan baru langsung ke Google Sheets
-    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
+    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec")) {
         const payloadToSend = {
             action: "addService",
             id: newServicePayload.id,
@@ -343,7 +343,7 @@ function processCheckout() {
     openReceiptModal(checkoutPayload);
 
     // KONEKSI PUSH CLOUD DATABASE SPREADSHEET (MENYIMPAN DUA ARAH)
-    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
+    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec")) {
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -479,7 +479,7 @@ function updateOrderStatus(orderId, newStatus) {
         }
         
         // 2. TEMBAK CLOUD: Kirim pembaruan status ini langsung ke Google Sheets agar sinkron ke pelanggan
-        if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
+        if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec")) {
             // Kita pakai trigger action khusus 'updateStatus'
             const updatePayload = {
                 action: "updateStatus",
@@ -608,7 +608,7 @@ window.addEventListener('load', () => {
 
         // Fungsi Pembantu internal untuk menarik data berulang kali
         function fetchStatusPelanggan() {
-            if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) return;
+            if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbwTdjyOUGPgK4wycGHI8ab-AgR82Ziv9SSJpYFuum_yO1E42CZIDWIkMZeLddY0RxOw/exec")) return;
             
             console.log("Menyelaraskan status nota konsumen secara real-time...");
             

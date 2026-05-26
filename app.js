@@ -88,7 +88,7 @@ function logoutCashier() {
 
 // AMBIL DATA DARI GOOGLE SPREADSHEET (ANTI-HILANG SETELAH LOGOUT / REFRESH)
 function loadDataFromCloud() {
-    if (SCRIPT_URL === "" || SCRIPT_URL.includes("TEMPEL_URL")) return;
+    if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) return;
     
     console.log("Sedang menyelaraskan data dengan Google Sheets...");
 
@@ -162,7 +162,7 @@ function saveNewService() {
     document.getElementById('serviceModal').classList.add('hidden');
     
     // KONEKSI PUSH CLOUD: Kirim menu layanan baru langsung ke Google Sheets
-    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("TEMPEL_URL")) {
+    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
         const payloadToSend = {
             action: "addService",
             id: newServicePayload.id,
@@ -343,7 +343,7 @@ function processCheckout() {
     openReceiptModal(checkoutPayload);
 
     // KONEKSI PUSH CLOUD DATABASE SPREADSHEET (MENYIMPAN DUA ARAH)
-    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("TEMPEL_URL")) {
+    if(SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -466,10 +466,10 @@ function renderOrders() {
     }).join('');
 }
 
-// LOGIKA PEMBARUAN STATUS & MOCK TRACKING TIMELINE LIVE VIEW
 function updateOrderStatus(orderId, newStatus) {
     const orderIndex = orders.findIndex(o => o.id === orderId);
     if (orderIndex !== -1) {
+        // 1. Update data lokal di HP kasir
         orders[orderIndex].status = newStatus;
         renderOrders();
         
@@ -478,9 +478,29 @@ function updateOrderStatus(orderId, newStatus) {
             openLiveTrackingPreview(orderId);
         }
         
+        // 2. TEMBAK CLOUD: Kirim pembaruan status ini langsung ke Google Sheets agar sinkron ke pelanggan
+        if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) {
+            // Kita pakai trigger action khusus 'updateStatus'
+            const updatePayload = {
+                action: "updateStatus",
+                id: orderId,
+                status: newStatus
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(updatePayload)
+            })
+            .then(() => console.log(`Status nota ${orderId} berhasil di-update di database cloud.`))
+            .catch(err => console.error("Gagal sinkron status baru ke cloud:", err));
+        }
+        
         triggerNotification(`Status pesanan ${orderId} berhasil diubah menjadi: ${newStatus}`);
     }
 }
+
 
 function openLiveTrackingPreview(orderId) {
     const order = orders.find(o => o.id === orderId);
@@ -558,7 +578,7 @@ function triggerNotification(msg) {
     setTimeout(() => banner.classList.add('hidden'), 5000);
 }
 
-// FUNGSI OTOMATIS: JALUR BYPASS PELANGGAN BELUM LOGIN AGAR BISA LACAK NOTA
+// FUNGSI OTOMATIS: JALUR BYPASS PELANGGAN BELUM LOGIN + AUTO REFRESH REAL-TIME
 window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const orderParam = urlParams.get('order');
@@ -577,27 +597,31 @@ window.addEventListener('load', () => {
         const navBawah = document.querySelector('nav');
         if(navBawah) navBawah.style.display = 'none';
         
-        // Tambahan: Hilangkan padding bawah pada bodi utama karena nav bawah disembunyikan
+        // Hilangkan padding bawah pada bodi utama karena nav bawah disembunyikan
         const mainAppEl = document.getElementById('main-app');
         if(mainAppEl) mainAppEl.className = 'min-h-screen flex flex-col pb-0';
 
-        // 3. Tampilkan teks loading sementara di area tracking agar estetik
+        // 3. Tampilkan teks loading awal agar konsumen tahu sistem sedang bekerja
         document.getElementById('track-id').innerText = "MENCARI DATA...";
         document.getElementById('track-cust').innerText = "Sedang mengunduh data dari server...";
         switchView('tracking');
 
-        // 4. Jalankan fetch langsung ke Google Sheets tanpa nunggu aksi login kasir
-        if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("TEMPEL_URL")) {
+        // Fungsi Pembantu internal untuk menarik data berulang kali
+        function fetchStatusPelanggan() {
+            if (SCRIPT_URL === "" || SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbxVDdHEBWOxSB9r-bqJ3dQDGoofzXcbpH4SjXRCedkgdKpK_9RXmnFro4Cg77BQxwZ8/exec")) return;
+            
+            console.log("Menyelaraskan status nota konsumen secara real-time...");
+            
             fetch(`${SCRIPT_URL}?action=read`)
                 .then(response => response.json())
                 .then(cloudData => {
                     if (cloudData && cloudData.transactions) {
                         orders = cloudData.transactions;
                         
-                        // Cari nota yang pas
+                        // Cari nota yang pas dengan parameter link WA
                         const match = orders.find(o => o.id.toUpperCase() === orderParam.toUpperCase());
                         if (match) {
-                            // Tampilkan status asli timeline baju milik pelanggan
+                            // Tampilkan status asli timeline baju milik pelanggan secara dinamis
                             openLiveTrackingPreview(match.id);
                         } else {
                             document.getElementById('track-id').innerText = "TIDAK DITEMUKAN";
@@ -605,10 +629,14 @@ window.addEventListener('load', () => {
                         }
                     }
                 })
-                .catch(err => {
-                    document.getElementById('track-id').innerText = "KONEKSI GAGAL";
-                    document.getElementById('track-cust').innerText = "Gagal terhubung ke database. Coba segarkan halaman.";
-                });
+                .catch(err => console.log("Gagal auto-update status (Masalah jaringan):", err));
         }
+
+        // 4. EKSEKUSI PERTAMA: Jalankan pencarian data langsung saat halaman dibuka
+        fetchStatusPelanggan();
+
+        // 5. FITUR AUTO-REFRESH REAL-TIME: Paksa halaman mengecek Google Sheets setiap 10 detik sekali
+        // Pelanggan tidak perlu refresh halaman, linimasa akan bergeser sendiri jika kasir mengubah statusnya!
+        setInterval(fetchStatusPelanggan, 10000); 
     }
 });

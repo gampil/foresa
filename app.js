@@ -1,4 +1,4 @@
-// BACKEND CONFIGURATION: Tempel tautan URL Google Apps Script Web App Anda di sini untuk sinkronisasi cloud
+ko// BACKEND CONFIGURATION: Tempel tautan URL Google Apps Script Web App Anda di sini untuk sinkronisasi cloud
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEiNj70R9hdGUByJBAwrQ-0bFkVjdOcdOvJ86qQcqVvk8NrfQRsUkYlNAD3WbY6ECi/exec";
 
 // STATE VARIABEL & DATABASE LOCAL MEMORY
@@ -584,3 +584,22 @@ function triggerNotification(msg) {
     banner.classList.remove('hidden');
     setTimeout(() => banner.classList.add('hidden'), 5000);
 }
+// FUNGSI OTOMATIS: Memeriksa apakah ada parameter (?order=...) saat website dibuka
+window.addEventListener('load', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderParam = urlParams.get('order');
+    
+    if (orderParam) {
+        console.log("Mendeteksi permintaan pelacakan nota:", orderParam);
+        // Beri jeda 1.5 detik agar data dari cloud selesai di-download terlebih dahulu, baru tampilkan statusnya
+        setTimeout(() => {
+            const match = orders.find(o => o.id.toUpperCase() === orderParam.toUpperCase());
+            if (match) {
+                openLiveTrackingPreview(match.id);
+            } else {
+                console.log("Nota tidak ditemukan dalam database lokal.");
+            }
+        }, 1500);
+    }
+});
+

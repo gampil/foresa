@@ -1,5 +1,5 @@
 // BACKEND CONFIGURATION: Tempel tautan URL Google Apps Script Web App Anda di sini untuk sinkronisasi cloud
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEiNj70R9hdGUByJBAwrQ-0bFkVjdOcdOvJ86qQcqVvk8NrfQRsUkYlNAD3WbY6ECi/exec";
+const SCRIPT_URL = "TEMPEL_URL_WEB_APP_GOOGLE_KAMU_DISINI";
 
 // STATE VARIABEL & DATABASE LOCAL MEMORY
 let currentCashier = "";
@@ -194,14 +194,14 @@ function renderServicesGrid() {
         
         grid.innerHTML += `
             <div onclick="selectServiceToCart('${item.id}')" class="bg-white p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-36 relative ${activeClasses}">
-                \${isActive ? '<span class="absolute top-3 right-3 text-xs theme-color"><i class="fa-solid fa-circle-check"></i></span>' : ''}
+                ${isActive ? '<span class="absolute top-3 right-3 text-xs theme-color"><i class="fa-solid fa-circle-check"></i></span>' : ''}
                 <div class="flex justify-between items-start">
-                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md">\${item.type}</span>
-                    \${!isActive ? `<i class="fa-solid \${item.icon} text-slate-300 text-base"></i>` : '<div class="w-2"></div>'}
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md">${item.type}</span>
+                    ${!isActive ? `<i class="fa-solid ${item.icon} text-slate-300 text-base"></i>` : '<div class="w-2"></div>'}
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-800 text-xs mb-0.5 line-clamp-1">\${item.name}</h4>
-                    <p class="text-sm font-bold theme-color">Rp \${item.price.toLocaleString('id-ID')}</p>
+                    <h4 class="font-bold text-slate-800 text-xs mb-0.5 line-clamp-1">${item.name}</h4>
+                    <p class="text-sm font-bold theme-color">Rp ${item.price.toLocaleString('id-ID')}</p>
                 </div>
             </div>
         `;
@@ -213,10 +213,10 @@ function populateDropdowns() {
     const payDropdown = document.getElementById('cart-payment');
     
     if(custDropdown && customers) {
-        custDropdown.innerHTML = customers.map(c => `<option value="\${c.name}">\${c.name}</option>`).join('');
+        custDropdown.innerHTML = customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
     if(payDropdown && paymentMethods) {
-        payDropdown.innerHTML = paymentMethods.map(p => `<option value="\${p}">\${p}</option>`).join('');
+        payDropdown.innerHTML = paymentMethods.map(p => `<option value="${p}">${p}</option>`).join('');
     }
 }
 
@@ -230,10 +230,10 @@ function selectServiceToCart(id) {
     document.getElementById('cart-items').innerHTML = `
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center w-full">
             <div>
-                <p class="font-bold text-slate-700 text-xs">\${selected.name}</p>
-                <p class="text-[10px] text-slate-400">Harga: Rp \${selected.price.toLocaleString('id-ID')} / \${selected.type === 'Kiloan' ? 'Kg' : 'Pcs'}</p>
+                <p class="font-bold text-slate-700 text-xs">${selected.name}</p>
+                <p class="text-[10px] text-slate-400">Harga: Rp ${selected.price.toLocaleString('id-ID')} / ${selected.type === 'Kiloan' ? 'Kg' : 'Pcs'}</p>
             </div>
-            <span class="font-bold text-slate-400 text-xs">\${selected.type}</span>
+            <span class="font-bold text-slate-400 text-xs">${selected.type}</span>
         </div>
     `;
 
@@ -241,9 +241,9 @@ function selectServiceToCart(id) {
     document.getElementById('cart-qty-wrapper').innerHTML = `
         <div class="mt-3 bg-cyan-50/40 p-3 rounded-xl border border-cyan-100/50 flex items-center justify-between gap-4">
             <label class="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">
-                \${isKiloan ? '⚖️ Berat Timbangan (Kg)' : '🔢 Jumlah Barang (Pcs)'}
+                ${isKiloan ? '⚖️ Berat Timbangan (Kg)' : '🔢 Jumlah Barang (Pcs)'}
             </label>
-            <input type="number" id="cart-input-qty" value="1" min="0.1" step="\${isKiloan ? '0.1' : '1'}" 
+            <input type="number" id="cart-input-qty" value="1" min="0.1" step="${isKiloan ? '0.1' : '1'}" 
                 oninput="updateCartTotal()" 
                 class="w-24 bg-white border border-slate-200 rounded-lg p-2 text-center text-xs font-bold text-slate-800 outline-none focus:border-cyan-400">
         </div>
@@ -265,7 +265,7 @@ function updateCartTotal() {
     }
 
     const totalHarga = selected.price * qty;
-    document.getElementById('cart-total').innerText = `Rp \${totalHarga.toLocaleString('id-ID')}`;
+    document.getElementById('cart-total').innerText = `Rp ${totalHarga.toLocaleString('id-ID')}`;
     return totalHarga;
 }
 
@@ -302,7 +302,7 @@ function processCheckout() {
     if (isNaN(qty) || qty <= 0) return alert('Berat atau Jumlah item tidak valid!');
     
     const totalHargaAkhir = selected.price * qty;
-    const generatedOrderId = `FRS-\${Math.floor(1000 + Math.random() * 9000)}`;
+    const generatedOrderId = `FRS-${Math.floor(1000 + Math.random() * 9000)}`;
     
     let customerName = "";
     let customerPhone = "";
@@ -316,7 +316,7 @@ function processCheckout() {
         customerName = inputName;
         customerPhone = inputPhone.startsWith('0') ? '62' + inputPhone.slice(1) : inputPhone;
 
-        customers.push({ id: `C\${customers.length + 1}`, name: customerName, phone: customerPhone });
+        customers.push({ id: `C${customers.length + 1}`, name: customerName, phone: customerPhone });
         populateDropdowns();
     } else {
         customerName = document.getElementById('cart-customer').value;
@@ -324,7 +324,7 @@ function processCheckout() {
         customerPhone = targetCust ? targetCust.phone : "628123456789";
     }
 
-    const serviceDetailLabel = `\${selected.name} (\${qty} \${selected.type === 'Kiloan' ? 'Kg' : 'Pcs'})`;
+    const serviceDetailLabel = `${selected.name} (${qty} ${selected.type === 'Kiloan' ? 'Kg' : 'Pcs'})`;
 
     const checkoutPayload = {
         id: generatedOrderId,
@@ -370,18 +370,18 @@ function openReceiptModal(order) {
     document.getElementById('nota-cashier').innerText = order.cashier;
     document.getElementById('nota-customer').innerText = order.customer;
     document.getElementById('nota-service').innerText = order.service;
-    document.getElementById('nota-price').innerText = `Rp \${order.total.toLocaleString('id-ID')}`;
+    document.getElementById('nota-price').innerText = `Rp ${order.total.toLocaleString('id-ID')}`;
     document.getElementById('nota-paymethod').innerText = order.method;
-    document.getElementById('nota-total').innerText = `Rp \${order.total.toLocaleString('id-ID')}`;
+    document.getElementById('nota-total').innerText = `Rp ${order.total.toLocaleString('id-ID')}`;
 
     document.getElementById('track-id').innerText = order.id;
     document.getElementById('track-cust').innerText = order.customer;
     document.getElementById('track-service').innerText = order.service;
-    document.getElementById('track-total').innerText = `Rp \${order.total.toLocaleString('id-ID')}`;
+    document.getElementById('track-total').innerText = `Rp ${order.total.toLocaleString('id-ID')}`;
     document.getElementById('track-badge').innerText = order.status.toUpperCase();
 
     // Menggunakan link GitHub Pages asli untuk QR Code pelacakan konsumen
-    const generatedTrackingUrl = `https://gampil.github.io/foresa?order=\${order.id}`;
+    const generatedTrackingUrl = `https://gampil.github.io/foresa?order=${order.id}`;
     
     // GENERATOR FORMAT SVG MURNI
     document.getElementById("qrcode").innerHTML = "";
@@ -410,10 +410,10 @@ function sendWhatsAppReceipt() {
     const total = document.getElementById('nota-total').innerText;
     
     // Menggunakan link GitHub Pages untuk teks tautan yang dikirim ke WhatsApp konsumen
-    const trackingUrl = `https://gampil.github.io/foresa?order=\${id}`;
+    const trackingUrl = `https://gampil.github.io/foresa?order=${id}`;
     
-    const messageText = `Halo, Terima kasih telah mencuci di *Forresa Laundry*.\\n\\nBerikut rincian Nota Transaksi digital Anda:\\n🆔 No Nota: *\${id}*\\n👤 Konsumen: *\${customer}*\\n💰 Total Bill: *\${total}*\\n\\n🌿 Pantau status proses pengerjaan laundry pakaian Anda secara realtime melalui link tautan resmi di bawah ini:\\n🔗 \${trackingUrl}`;
-    window.open(`https://api.whatsapp.com/send?text=\${encodeURIComponent(messageText)}`, '_blank');
+    const messageText = `Halo, Terima kasih telah mencuci di *Forresa Laundry*.\n\nBerikut rincian Nota Transaksi digital Anda:\n🆔 No Nota: *${id}*\n👤 Konsumen: *${customer}*\n💰 Total Bill: *${total}*\n\n🌿 Pantau status proses pengerjaan laundry pakaian Anda secara realtime melalui link tautan resmi di bawah ini:\n🔗 ${trackingUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
 }
 
 // FILTER SEARCHING DATA
@@ -436,29 +436,29 @@ function renderOrders() {
         return `
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-xs font-mono font-bold text-slate-400">\${o.id}</span>
-                    <span class="text-[10px] px-2.5 py-0.5 font-bold rounded-full \${badgeColor}">\${o.status.toUpperCase()}</span>
+                    <span class="text-xs font-mono font-bold text-slate-400">${o.id}</span>
+                    <span class="text-[10px] px-2.5 py-0.5 font-bold rounded-full ${badgeColor}">${o.status.toUpperCase()}</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-800 text-sm">\${o.customer}</h4>
-                    <p class="text-[11px] text-slate-400">\${o.service}</p>
-                    <p class="text-[10px] text-slate-400 italic">WA: +\${o.phone}</p>
+                    <h4 class="font-bold text-slate-800 text-sm">${o.customer}</h4>
+                    <p class="text-[11px] text-slate-400">${o.service}</p>
+                    <p class="text-[10px] text-slate-400 italic">WA: +${o.phone}</p>
                 </div>
                 
                 <div class="space-y-2 pt-2 border-t border-slate-50">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Update Status Operasional:</label>
-                    <select onchange="updateOrderStatus('\${o.id}', this.value)" class="w-full text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none focus:border-cyan-400">
-                        <option value="Diproses" \${o.status === 'Diproses' ? 'selected' : ''}>⏳ Sedang Diproses</option>
-                        <option value="Selesai" \${o.status === 'Selesai' ? 'selected' : ''}>✨ Selesai (Siap Ambil)</option>
-                        <option value="Diambil" \${o.status === 'Diambil' ? 'selected' : ''}>✅ Sudah Diambil Pelanggan</option>
+                    <select onchange="updateOrderStatus('${o.id}', this.value)" class="w-full text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none focus:border-cyan-400">
+                        <option value="Diproses" ${o.status === 'Diproses' ? 'selected' : ''}>⏳ Sedang Diproses</option>
+                        <option value="Selesai" ${o.status === 'Selesai' ? 'selected' : ''}>✨ Selesai (Siap Ambil)</option>
+                        <option value="Diambil" ${o.status === 'Diambil' ? 'selected' : ''}>✅ Sudah Diambil Pelanggan</option>
                     </select>
                 </div>
 
                 <div class="flex justify-between items-center pt-2">
-                    <span class="text-xs font-bold theme-color">Rp \${o.total.toLocaleString('id-ID')}</span>
+                    <span class="text-xs font-bold theme-color">Rp ${o.total.toLocaleString('id-ID')}</span>
                     <div class="flex gap-1">
-                        <button onclick="openLiveTrackingPreview('\${o.id}')" class="text-[10px] font-bold bg-cyan-50 text-[#40E0D0] px-2.5 py-1.5 rounded-lg hover:bg-cyan-100/50" title="Cek Tampilan Live"><i class="fa-solid fa-eye"></i></button>
-                        <button onclick="openReceiptModalById('\${o.id}')" class="text-[10px] font-bold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200">Buka Struk</button>
+                        <button onclick="openLiveTrackingPreview('${o.id}')" class="text-[10px] font-bold bg-cyan-50 text-[#40E0D0] px-2.5 py-1.5 rounded-lg hover:bg-cyan-100/50" title="Cek Tampilan Live"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="openReceiptModalById('${o.id}')" class="text-[10px] font-bold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200">Buka Struk</button>
                     </div>
                 </div>
             </div>
@@ -478,7 +478,7 @@ function updateOrderStatus(orderId, newStatus) {
             openLiveTrackingPreview(orderId);
         }
         
-        triggerNotification(`Status pesanan \${orderId} berhasil diubah menjadi: \${newStatus}`);
+        triggerNotification(`Status pesanan ${orderId} berhasil diubah menjadi: ${newStatus}`);
     }
 }
 
@@ -489,7 +489,7 @@ function openLiveTrackingPreview(orderId) {
     document.getElementById('track-id').innerText = order.id;
     document.getElementById('track-cust').innerText = order.customer;
     document.getElementById('track-service').innerText = order.service;
-    document.getElementById('track-total').innerText = `Rp \${order.total.toLocaleString('id-ID')}`;
+    document.getElementById('track-total').innerText = `Rp ${order.total.toLocaleString('id-ID')}`;
     document.getElementById('track-badge').innerText = order.status.toUpperCase();
 
     const steps = document.querySelectorAll('#view-tracking .relative.pl-6 > div');
@@ -539,8 +539,8 @@ function setStepActive(stepElement, isActive, isPulse) {
 // FINANSIAL REPORT REKAP MANAGEMENT
 function calculateFinance() {
     const total = orders.reduce((sum, o) => sum + o.total, 0);
-    document.getElementById('rep-income').innerText = `Rp \${total.toLocaleString('id-ID')}`;
-    document.getElementById('rep-profit').innerText = `Rp \${total.toLocaleString('id-ID')}`;
+    document.getElementById('rep-income').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    document.getElementById('rep-profit').innerText = `Rp ${total.toLocaleString('id-ID')}`;
 }
 
 function exportToExcel() {
@@ -588,7 +588,7 @@ window.addEventListener('load', () => {
 
         // 4. Jalankan fetch langsung ke Google Sheets tanpa nunggu aksi login kasir
         if (SCRIPT_URL !== "" && !SCRIPT_URL.includes("TEMPEL_URL")) {
-            fetch(`\${SCRIPT_URL}?action=read`)
+            fetch(`${SCRIPT_URL}?action=read`)
                 .then(response => response.json())
                 .then(cloudData => {
                     if (cloudData && cloudData.transactions) {

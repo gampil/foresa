@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forresa Laundry - POS Kasir v2</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=10">
+</head>
+<body class="antialiased">
+
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl max-w-sm w-full text-center space-y-6">
+            <div class="w-16 h-16 theme-bg text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-md shadow-cyan-100">
+                <i class="fa-solid fa-soap"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-800">Forresa Laundry</h2>
+                <p class="text-xs text-slate-400 mt-1">Silakan masukkan nama Anda untuk membuka mesin kasir</p>
+            </div>
+            <div class="space-y-3 text-left">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nama Otoritas Kasir</label>
+                <input type="text" id="input-cashier-name" placeholder="Contoh: Gampil Yogi" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold text-slate-700 outline-none focus:border-cyan-400 transition-all">
+            </div>
+            <button onclick="submitLogin()" class="w-full theme-bg text-white font-bold py-3.5 rounded-xl shadow-md shadow-cyan-100 hover:opacity-95 transition-all text-xs">
+                Buka Sistem POS <i class="fa-solid fa-arrow-right-to-bracket ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen flex flex-col pb-24 lg:pb-6">
+        <header class="bg-white border-b border-slate-100 sticky top-0 z-40 px-4 py-4 sm:px-6">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 theme-bg text-white rounded-xl flex items-center justify-center text-sm shadow-xs"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <h1 class="text-sm font-extrabold text-slate-800 tracking-tight">Forresa Laundry Portal</h1>
+                        <p class="text-[10px] text-slate-400 font-medium">Petugas Aktif: <span id="display-cashier" class="font-bold theme-color">Sistem</span></p>
+                    </div>
+                </div>
+                <button onclick="logoutCashier()" class="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-2 rounded-xl hover:bg-rose-100 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-power-off"></i> Keluar
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 flex-1 w-full">
+            
+            <section id="view-pos" class="view-section grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex gap-2 overflow-x-auto pb-1">
+                            <button class="px-4 py-2 rounded-xl text-xs font-semibold theme-bg text-white shadow-xs">Semua Produk</button>
+                        </div>
+                        <button onclick="openNewServiceModal()" class="text-xs font-semibold theme-color bg-cyan-50 border border-cyan-100 px-3 py-2 rounded-xl hover:bg-cyan-100/50 flex items-center gap-1">
+                            <i class="fa-solid fa-plus-circle"></i> Tambah Layanan Baru
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" id="services-grid"></div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-xs space-y-4 h-auto block w-full clear-both">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center justify-between">
+                        <span>Konfirmasi Keranjang</span>
+                        <i class="fa-solid fa-basket-shopping theme-color"></i>
+                    </h3>
+                    
+                    <div class="block w-full">
+                        <label class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-2">Data Pelanggan Nota</label>
+                        <div class="flex flex-col gap-3">
+                            <div id="wrapper-existing-cust" class="w-full">
+                                <select id="cart-customer" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-medium text-slate-700 outline-none focus:border-cyan-400"></select>
+                            </div>
+                            <div id="wrapper-new-cust" class="hidden w-full bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2">
+                                <input type="text" id="new-cust-name" placeholder="Nama Pelanggan Baru" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 font-medium">
+                                <input type="number" id="new-cust-phone" placeholder="No. WhatsApp (Contoh: 628123...)" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 font-medium">
+                            </div>
+                            <div class="w-full pt-1">
+                                <button type="button" onclick="toggleNewCustomerInput()" id="btn-toggle-cust" class="w-full bg-cyan-50 border border-cyan-100 theme-color text-xs font-bold py-3.5 px-4 rounded-xl shadow-xs hover:bg-cyan-100/60 transition-all flex justify-center items-center gap-2">
+                                    <i class="fa-solid fa-user-plus"></i> Tambah Pelanggan Baru
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-1">
+                        <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Metode Bayar</label>
+                        <select id="cart-payment" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-medium text-slate-700 outline-none focus:border-cyan-400"></select>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 mt-2">
+                        <label class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Layanan Terpilih</label>
+                        <div id="cart-items" class="min-h-[40px] flex flex-col justify-center text-xs font-medium text-slate-500">
+                            <span class="text-center italic text-slate-400 py-2">Silahkan pilih produk di sebelah kiri...</span>
+                        </div>
+                        
+                        <div id="cart-qty-wrapper" class="w-full"></div>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="text-xs font-medium text-slate-400">Total Akhir</span>
+                            <span class="text-xl font-bold text-slate-800" id="cart-total">Rp 0</span>
+                        </div>
+
+                        <button onclick="processCheckout()" class="w-full theme-bg text-white font-bold py-4 rounded-xl shadow-md shadow-cyan-100 hover:opacity-95 transition-all flex justify-center items-center gap-2 text-sm">
+                            <i class="fa-solid fa-print"></i> Proses Transaksi & Struk
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-orders" class="view-section hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-xs">
+                    <div class="relative flex-1 max-w-md">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                        <input type="text" oninput="searchByQR(this.value)" placeholder="Cari nama konsumen / nomor nota..." class="w-full bg-slate-50 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none border border-slate-100 focus:border-cyan-400 transition-all font-medium">
+                    </div>
+                    <button onclick="exportToExcel()" class="bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-emerald-100/50 transition-all">
+                        <i class="fa-solid fa-file-excel"></i> Ekspor Rekap Penjualan (.Excel)
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="orders-list"></div>
+            </section>
+
+            <section id="view-tracking" class="view-section hidden max-w-md mx-auto bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+                <div class="theme-bg p-6 text-white text-center space-y-2">
+                    <span id="track-badge" class="text-[9px] bg-white/20 px-3 py-1 rounded-full font-bold uppercase tracking-wider">STATUS</span>
+                    <h3 id="track-id" class="text-lg font-mono font-extrabold tracking-wider">FRS-XXXX</h3>
+                    <p class="text-xs text-cyan-50/80 font-medium">Estimasi Selesai: Esok Hari</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                        <div class="flex justify-between"><span class="text-slate-400">Konsumen:</span><span id="track-cust" class="font-bold text-slate-700">-</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Paket Item:</span><span id="track-service" class="font-bold text-slate-700">-</span></div>
+                        <div class="flex justify-between pt-2 border-t border-slate-200/60"><span class="text-slate-400 font-semibold">Total Tagihan:</span><span id="track-total" class="font-bold theme-color">-</span></div>
+                    </div>
+                    
+                    <div class="relative pl-6 border-l-2 border-slate-100 ml-3 space-y-6 py-2 text-left">
+                        <div>
+                            <span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></span>
+                            <p class="text-xs font-semibold text-slate-400">Pesanan Diterima Kasir</p>
+                            <p class="text-[10px] text-slate-400 font-medium">Pakaian masuk antrean sortir & timbang</p>
+                        </div>
+                        <div class="relative">
+                            <span class="animate-ping absolute -left-[35px] -top-[4px] w-6 h-6 rounded-full theme-bg opacity-25 hidden"></span>
+                            <span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></span>
+                            <p class="text-xs font-semibold text-slate-400">Sedang Proses Cuci & Setrika</p>
+                            <p class="text-[10px] text-slate-400 font-medium">Pakaian sedang dibersihkan secara higienis</p>
+                        </div>
+                        <div>
+                            <span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></span>
+                            <p class="text-xs font-semibold text-slate-400">Selesai & Siap Diambil</p>
+                            <p class="text-[10px] text-slate-400 font-medium">Pakaian sudah packing rapi, menunggu Anda</p>
+                        </div>
+                        <div>
+                            <span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></span>
+                            <p class="text-xs font-semibold text-slate-400">Sudah Diambil</p>
+                            <p class="text-[10px] text-slate-400 font-medium">Transaksi selesai, terima kasih banyak</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-finance" class="view-section hidden space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4">
+                        <div class="w-12 h-12 bg-cyan-50 text-[#40E0D0] text-lg rounded-2xl flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div>
+                        <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Omset Pendapatan</p><h3 id="rep-income" class="text-xl font-black text-slate-800 mt-0.5">Rp 0</h3></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 text-lg rounded-2xl flex items-center justify-center"><i class="fa-solid fa-chart-line"></i></div>
+                        <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Laba Bersih Toko</p><h3 id="rep-profit" class="text-xl font-black text-slate-800 mt-0.5">Rp 0</h3></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <nav class="bg-white border-t border-slate-100 fixed bottom-0 left-0 right-0 z-40 py-2.5 px-4 shadow-xl">
+            <div class="max-w-md mx-auto flex justify-around items-center">
+                <button onclick="switchView('pos')" class="nav-btn flex flex-col items-center gap-1 text-slate-400 font-bold text-[10px] theme-color"><i class="fa-solid fa-cash-register text-base"></i>Mesin Kasir</button>
+                <button onclick="switchView('orders')" class="nav-btn flex flex-col items-center gap-1 text-slate-400 font-bold text-[10px]"><i class="fa-solid fa-receipt text-base"></i>Daftar Nota</button>
+                <button onclick="switchView('tracking')" class="nav-btn flex flex-col items-center gap-1 text-slate-400 font-bold text-[10px]"><i class="fa-solid fa-magnifying-glass-location text-base"></i>Live Track</button>
+                <button onclick="switchView('finance')" class="nav-btn flex flex-col items-center gap-1 text-slate-400 font-bold text-[10px]"><i class="fa-solid fa-chart-pie text-base"></i>Keuangan</button>
+            </div>
+        </nav>
+    </div>
+
+    <div id="serviceModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-2xl max-w-sm w-full space-y-4">
+            <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2"><i class="fa-solid fa-circle-plus theme-color"></i> Tambah Daftar Menu Baru</h3>
+            <div class="space-y-3 text-left">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nama Layanan</label>
+                    <input type="text" id="new-service-name" placeholder="Contoh: Setrika Kilat" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-cyan-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Harga Jual (Rp)</label>
+                    <input type="number" id="new-service-price" placeholder="Contoh: 6000" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-cyan-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tipe Hitungan Satuan</label>
+                    <select id="new-service-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-cyan-400">
+                        <option value="Kiloan">Kiloan (Hitung Berat Kg)</option>
+                        <option value="Satuan">Satuan (Hitung Per Biji/Pcs)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="document.getElementById('serviceModal').classList.add('hidden')" class="w-full bg-slate-100 text-slate-500 font-bold py-3 rounded-xl text-xs hover:bg-slate-200 transition-all">Batal</button>
+                <button onclick="saveNewService()" class="w-full theme-bg text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-cyan-100 hover:opacity-95 transition-all">Simpan Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-2xl max-w-xs w-full space-y-4 my-auto">
+            
+            <div id="print-area" class="bg-white p-1 text-slate-800 text-xs font-mono space-y-3">
+                <div class="text-center">
+                    <h4 class="font-extrabold text-sm text-slate-800 tracking-tight">FORRESA LAUNDRY</h4>
+                    <p class="text-[10px] text-slate-400">Hub: +628123456789</p>
+                    <p class="text-[9px] text-slate-400 font-sans mt-0.5" id="nota-date">26/05/2026 08:00</p>
+                </div>
+                <div class="border-b border-dashed border-slate-300 my-1"></div>
+                <div class="space-y-0.5 text-[10px]">
+                    <div class="flex justify-between"><span class="text-slate-400">No Nota:</span><span id="nota-id" class="font-bold text-slate-700">FRS-XXXX</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Kasir:</span><span id="nota-cashier" class="font-medium text-slate-700">-</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Konsumen:</span><span id="nota-customer" class="font-bold text-slate-700">-</span></div>
+                </div>
+                <div class="border-b border-dashed border-slate-300 my-1"></div>
+                <div class="space-y-1">
+                    <div class="flex justify-between items-start gap-2">
+                        <span id="nota-service" class="font-medium leading-tight text-[10px]">Cuci Kering (1 Kg)</span>
+                        <span id="nota-price" class="font-bold text-right text-[10px]">Rp 0</span>
+                    </div>
+                </div>
+                <div class="border-b border-dashed border-slate-300 my-1"></div>
+                <div class="space-y-0.5 text-[10px]">
+                    <div class="flex justify-between"><span class="text-slate-400">Metode:</span><span id="nota-paymethod" class="font-medium text-slate-700">-</span></div>
+                    <div class="flex justify-between font-bold text-sm pt-1"><span class="text-slate-800 text-xs">TOTAL:</span><span id="nota-total" class="theme-color text-xs">Rp 0</span></div>
+                </div>
+                <div class="border-b border-dashed border-slate-300 my-1"></div>
+                
+                <div class="flex flex-col items-center justify-center pt-1 pb-1 gap-1">
+                    <div id="qrcode" class="bg-white p-0.5 flex justify-center items-center"></div>
+                    <p class="text-[7px] text-slate-400 text-center font-sans tracking-tighter">Scan QR di atas untuk cek proses status live laundry Anda</p>
+                </div>
+                <p class="text-[9px] text-center font-sans font-medium text-slate-400 pt-1">--- Terima Kasih ---</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2 pt-2">
+                <button onclick="window.print()" class="w-full theme-bg text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-cyan-100 flex justify-center items-center gap-1.5 hover:opacity-90 transition-all">
+                    <i class="fa-solid fa-print"></i> Print Struk Thermal
+                </button>
+                <button onclick="sendWhatsAppReceipt()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-emerald-100 flex justify-center items-center gap-1.5 hover:bg-emerald-600 transition-all">
+                    <i class="fa-brands fa-whatsapp"></i> Kirim Nota via WA
+                </button>
+                <button onclick="document.getElementById('receiptModal').classList.add('hidden')" class="w-full bg-slate-100 text-slate-500 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-200 transition-all">Tutup Pratinjau</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="liveAlert" class="hidden fixed bottom-24 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm bg-slate-900/95 text-white p-4 rounded-2xl shadow-xl z-50 flex items-center gap-3 border border-slate-800 transition-all animate-bounce">
+        <div class="w-8 h-8 rounded-xl theme-bg text-white flex items-center justify-center text-xs"><i class="fa-solid fa-bell"></i></div>
+        <div class="flex-1 text-left"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pemberitahuan Sistem</p><p id="alertMessage" class="text-xs font-medium text-slate-100 mt-0.5">Berhasil terhubung.</p></div>
+    </div>
+
+    <script src="app.js?v=10"></script>
+</body>
+</html>

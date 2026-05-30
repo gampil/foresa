@@ -57,9 +57,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // 1. DAFTAR PIN KASIR AKUN RESMI (Kamu bisa ubah nama & PIN di bawah ini sesuai kebutuhan)
 const CASHIER_ACCOUNTS = {
-    "owner": "123",
-    "Admin": "1234",
-    "Kasir1": "12345"
+    "owner": "1234",
+    "admin": "1234",
+    "kasir1": "1234"
 };
 
 function submitLogin() {
@@ -601,12 +601,33 @@ function sendWhatsAppReceipt() {
     const customer = document.getElementById('nota-customer').innerText;
     const total = document.getElementById('nota-total').innerText;
     
-    // Menggunakan link GitHub Pages untuk teks tautan yang dikirim ke WhatsApp konsumen
-    const trackingUrl = `https://gampil.github.io/foresa?order=${id}`;
+    // 💡 1. CARI DATA NOTA AKTIF DI DATABASE UNTUK MENGAMBIL NOMOR HP-NYA
+    let customerPhone = "";
+    const currentOrderData = orders.find(o => o.id === id);
+    if (currentOrderData && currentOrderData.phone) {
+        customerPhone = currentOrderData.phone.trim();
+        
+        // Bersihkan nomor jika pelanggan ngetik pake tanda '+', Spasi, atau Strip
+        customerPhone = customerPhone.replace(/[-+ _]/g, "");
+        
+        // Otomatis ubah angka '0' di depan menjadi kode Indonesia '62'
+        if (customerPhone.startsWith("0")) {
+            customerPhone = "62" + customerPhone.slice(1);
+        }
+    }
     
+    const trackingUrl = `https://gampil.github.io/foresa?order=${id}`;
     const messageText = `Halo, Terima kasih telah mencuci di *Forresa Laundry*.\n\nBerikut rincian Nota Transaksi digital Anda:\n🆔 No Nota: *${id}*\n👤 Konsumen: *${customer}*\n💰 Total Bill: *${total}*\n\n🌿 Pantau status proses pengerjaan laundry pakaian Anda secara realtime melalui link tautan resmi di bawah ini:\n🔗 ${trackingUrl}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
+    
+    // 💡 2. LINK YANG SUDAH DIPERBAIKI (Ditutup dengan kurung ')' yang benar di akhir)
+    if (customerPhone !== "") {
+        window.open(`https://api.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(messageText)}`, '_blank');
+    } else {
+        // Fallback cadangan jika nomor pelanggan kosong atau tidak diisi kasir
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
+    }
 }
+
 
 // FILTER SEARCHING DATA
 function searchByQR(val) {

@@ -328,7 +328,7 @@
             container.innerHTML = html;
         }
 
-        // 2. FUNGSI CEK STATUS (Tetap sama)
+// 2. FUNGSI CEK STATUS (MULTI-DATABASE / MULTI-CABANG)
         async function cekStatus() {
             const orderIdInput = document.getElementById('orderId').value.trim();
             const boxHasil = document.getElementById('hasilPencarian');
@@ -342,15 +342,37 @@
             boxHasil.classList.add('hidden');
             loader.classList.remove('hidden');
 
+            // 💡 ISI SEMUA LINK DATABASE UTAMA & CABANG ANDA DI SINI
+            const SCRIPT_URLS = [
+                'https://script.google.com/macros/s/AKfycbydTg6Qwgjbqhu95AW0IFd7uTRgJughZZgjnunHDjHTrA48vAYj22jYdvQ5RUC7AXG7ng/exec', // Database Cabang 1
+                'MASUKKAN_URL_WEB_APP_GOOGLE_SHEETS_CABANG_2_DISINI' // Database Cabang 2
+            ];
+
             try {
-                const response = await fetch(`${SCRIPT_URL}?order=${encodeURIComponent(orderIdInput)}`);
-                const data = await response.json();
+                // Request ke semua database cabang secara bersamaan (Sistem Paralel)
+                const fetchPromises = SCRIPT_URLS.map(url => 
+                    fetch(`${url}?order=${encodeURIComponent(orderIdInput)}`)
+                        .then(response => response.json())
+                        .catch(() => null) // Jika salah satu cabang offline/error, abaikan agar tidak crash
+                );
+
+                // Tunggu respons dari semua database selesai
+                const results = await Promise.all(fetchPromises);
+                
+                let trx = null; // Wadah untuk menampung data transaksi yang cocok
+
+                // Cari di hasil database mana yang mengembalikan data nota valid
+                for (const data of results) {
+                    if (data && data.transactions && data.transactions.length > 0) {
+                        trx = data.transactions[0];
+                        break; // Jika sudah ketemu di salah satu cabang, hentikan pencarian loop
+                    }
+                }
 
                 loader.classList.add('hidden');
 
-                if (data.transactions && data.transactions.length > 0) {
-                    const trx = data.transactions[0];
-                    
+                // Jika data ditemukan di salah satu cabang
+                if (trx) {
                     let statusClass = "bg-slate-100 text-slate-700 border-slate-200";
                     let iconStatus = "fa-clock";
                     let trxStatusLower = trx.status.toLowerCase();
@@ -411,13 +433,14 @@
                     `;
                     boxHasil.classList.remove('hidden');
                 } else {
+                    // Jika nomor nota tidak ditemukan di seluruh database cabang
                     boxHasil.innerHTML = `
                         <div class="text-center py-8">
                             <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl shadow-inner">
                                 <i class="fas fa-search-minus"></i>
                             </div>
                             <h3 class="text-xl font-bold text-slate-800 mb-2">Nota Tidak Ditemukan</h3>
-                            <p class="text-sm text-slate-500 font-medium">Sistem tidak menemukan nomor nota <strong class="text-slate-800">${orderIdInput}</strong>.</p>
+                            <p class="text-sm text-slate-500 font-medium">Sistem tidak menemukan nomor nota <strong class="text-slate-800">${orderIdInput}</strong> di cabang manapun.</p>
                         </div>
                     `;
                     boxHasil.classList.remove('hidden');
@@ -428,7 +451,6 @@
                 alert("Koneksi ke server terputus. Silakan coba beberapa saat lagi.");
             }
         }
-
 // 3. LOGIKA OTOMATIS MELACAK DARI LINK (TAUTAN URL)
         document.addEventListener('DOMContentLoaded', () => {
             // Tetap muat katalog layanan seperti biasa

@@ -114,7 +114,7 @@
                     <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                         <i class="fas fa-receipt text-tosca-400 text-lg"></i>
                     </div>
-                    <input type="text" id="orderId" placeholder="Masukkan Nomor Nota (Contoh: TRX123)" class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 text-slate-800 focus:outline-none focus:ring-0 focus:border-tosca-500 rounded-2xl font-medium transition-colors">
+                    <input type="text" id="orderId" placeholder="FRS-XXXX" class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 text-slate-800 focus:outline-none focus:ring-0 focus:border-tosca-500 rounded-2xl font-medium transition-colors">
                 </div>
                 <button onclick="cekStatus()" class="bg-tosca-500 hover:bg-tosca-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-tosca-500/30 active:scale-95 flex justify-center items-center">
                     Cari Nota
@@ -123,12 +123,90 @@
 
             <div id="loadingStatus" class="hidden text-center mt-8">
                 <i class="fas fa-circle-notch fa-spin text-4xl text-tosca-500"></i>
-                <p class="text-sm font-medium text-slate-500 mt-3">Menghubungkan ke kasir...</p>
+                <p class="text-sm font-medium text-slate-500 mt-3">Mencari di database...</p>
             </div>
 
-            <div id="hasilPencarian" class="mt-8 hidden bg-slate-50 border border-slate-100 rounded-3xl p-6 md:p-8 max-w-2xl mx-auto transition-all">
+            <div id="hasilPencarian" class="mt-8 hidden w-full max-w-md mx-auto space-y-4 text-left transition-all">
+                
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-tosca-500"></div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nomor Nota</span>
+                            <h3 id="track-id" class="text-base font-mono font-bold text-slate-800">MENCARI DATA...</h3>
+                        </div>
+                        <span id="track-badge" class="text-[10px] font-bold px-3 py-1 rounded-full bg-tosca-500 text-white shadow-xs">MENUNGGU</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50 text-xs">
+                        <div>
+                            <span class="text-[10px] font-medium text-slate-400 block mb-0.5">Nama Pelanggan:</span>
+                            <p id="track-cust" class="font-bold text-slate-700 line-clamp-1">Memuat...</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-medium text-slate-400 block mb-0.5">Total Tagihan:</span>
+                            <p id="track-total" class="font-bold text-tosca-500">-</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50 text-xs mt-2">
+                        <div>
+                            <span class="text-[10px] font-medium text-slate-400 block mb-0.5">Tgl Pesanan Masuk:</span>
+                            <p id="track-date-in" class="font-semibold text-slate-600">-</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-medium text-slate-400 block mb-0.5">Estimasi Selesai:</span>
+                            <p id="track-date-out" class="font-bold text-amber-500">-</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-50 text-xs">
+                        <span class="text-[10px] font-medium text-slate-400 block mb-0.5">Paket Layanan:</span>
+                        <p id="track-service" class="font-semibold text-slate-600">-</p>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-50 text-xs flex flex-col justify-start items-start">
+                        <span class="text-[10px] font-medium text-slate-400 block mb-1">Status Pembayaran:</span>
+                        <div id="track-payment-status" class="inline-flex items-center gap-1 font-bold px-2.5 py-1 rounded-xl text-[11px] bg-slate-100 text-slate-400">
+                            -
+                        </div>
+                    </div>
+                </div> 
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <span>👕</span> Progres Pengerjaan Pakaian
+                    </h4>
+                    <div class="relative border-l-2 border-slate-100 ml-4 pl-6 space-y-8 py-2 font-sans">
+                        <div class="relative tracking-step">
+                            <span class="animate-ping absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-tosca-500 opacity-75 hidden"></span>
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-slate-200 border-2 border-white z-10 step-dot"></span>
+                            <p class="text-xs font-semibold text-slate-400 transition-all step-title">Pesanan Diterima</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Pakaian telah sukses didaftarkan di mesin POS kasir.</p>
+                        </div>
+                        <div class="relative tracking-step">
+                            <span class="animate-ping absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-tosca-500 opacity-75 hidden"></span>
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-slate-200 border-2 border-white z-10 step-dot"></span>
+                            <p class="text-xs font-semibold text-slate-400 transition-all step-title">Sedang Proses Cuci / Setrika</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Pakaian sedang dalam penanganan tim operasional laundry.</p>
+                        </div>
+                        <div class="relative tracking-step">
+                            <span class="animate-ping absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-tosca-500 opacity-75 hidden"></span>
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-slate-200 border-2 border-white z-10 step-dot"></span>
+                            <p class="text-xs font-semibold text-slate-400 transition-all step-title">Selesai (Siap Ambil)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Pakaian sudah bersih, rapi, dan siap diambil di outlet.</p>
+                        </div>
+                        <div class="relative tracking-step">
+                            <span class="animate-ping absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-tosca-500 opacity-75 hidden"></span>
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-slate-200 border-2 border-white z-10 step-dot"></span>
+                            <p class="text-xs font-semibold text-slate-400 transition-all step-title">Sudah Diambil</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Transaksi selesai. Pakaian telah diserahkan kembali ke pelanggan.</p>
+                        </div>
+                    </div>
                 </div>
-        </div>
+                
+            </div>
+            </div>
     </section>
 
     <section id="cara-kerja" class="py-24 bg-slate-50">
@@ -252,241 +330,6 @@
     <a href="https://wa.me/6281234567890" target="_blank" class="fixed bottom-6 right-6 bg-tosca-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-tosca-500/40 hover:-translate-y-2 hover:scale-110 transition-all duration-300 z-50 border-2 border-white">
         <i class="fab fa-whatsapp text-3xl"></i>
     </a>
-
-    <script>
-        // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA!
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwORvBmZ06otsQH_gbhFcPQKcy8GLSmk-1BmIVaFFKg2c7loRRhwDfVwF7qcxyJ5OC6/exec';
-
-        // Toggle Mobile Menu
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        }
-
-        const formatRupiah = (angka) => {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
-        };
-
-        // 1. RENDER LAYANAN KARTU GRID
-        async function fetchServices() {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=read`);
-                const data = await response.json();
-                renderServices(data.customServices);
-            } catch (error) {
-                document.getElementById('loadingLayanan').innerHTML = `
-                    <div class="bg-red-50 text-red-500 px-6 py-4 rounded-xl border border-red-200 text-center max-w-sm mx-auto">
-                        <i class="fas fa-exclamation-triangle mb-2 text-3xl"></i>
-                        <p class="font-bold">Koneksi Gagal</p>
-                        <p class="text-sm mt-1">Tidak dapat memuat data dari server kasir.</p>
-                    </div>`;
-            }
-        }
-
-        function renderServices(services) {
-            const container = document.getElementById('services-container');
-            document.getElementById('loadingLayanan').classList.add('hidden');
-            container.classList.remove('hidden');
-
-            if (!services || services.length === 0) {
-                container.innerHTML = `<p class="col-span-full text-center font-medium text-slate-500 py-10">Belum ada layanan yang ditambahkan pada kasir.</p>`;
-                return;
-            }
-
-            let html = '';
-            services.forEach(service => {
-                // Style Khusus Untuk Card Grid Layanan
-                let typeColor = service.type.toLowerCase() === 'kiloan' ? 'text-amber-600 bg-amber-50 border-amber-200' : 
-                                service.type.toLowerCase() === 'satuan' ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-tosca-600 bg-tosca-50 border-tosca-200';
-
-                html += `
-                    <div class="bg-white rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 p-6 border border-slate-100 flex flex-col h-full relative overflow-hidden group">
-                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-tosca-50 rounded-full opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-500 z-0"></div>
-                        
-                        <div class="relative z-10 flex flex-col h-full">
-                            <div class="mb-4">
-                                <span class="inline-block px-3 py-1.5 text-[10px] font-black uppercase tracking-widest ${typeColor} border rounded-lg">
-                                    ${service.type}
-                                </span>
-                            </div>
-                            
-                            <h3 class="text-lg font-bold mb-6 text-slate-800 leading-snug group-hover:text-tosca-600 transition-colors">${service.name}</h3>
-                            
-                            <div class="mt-auto border-t border-slate-100/80 pt-5 flex justify-between items-center">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Tarif</p>
-                                    <span class="text-xl font-black text-slate-800">${formatRupiah(service.price)}</span>
-                                </div>
-                                <a href="https://wa.me/6281234567890?text=Halo%20Foresa,%20saya%20ingin%20pesan%20layanan%20${service.name}" target="_blank" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-tosca-500 hover:bg-tosca-500 hover:text-white transition-all duration-300 border border-slate-200 hover:border-tosca-500 shadow-sm">
-                                    <i class="fab fa-whatsapp text-lg"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-// 2. FUNGSI CEK STATUS (MULTI-DATABASE / MULTI-CABANG)
-        async function cekStatus() {
-            const orderIdInput = document.getElementById('orderId').value.trim();
-            const boxHasil = document.getElementById('hasilPencarian');
-            const loader = document.getElementById('loadingStatus');
-
-            if (!orderIdInput) {
-                alert("Mohon masukkan ID Transaksi / Nota terlebih dahulu.");
-                return;
-            }
-
-            boxHasil.classList.add('hidden');
-            loader.classList.remove('hidden');
-
-            // 💡 ISI SEMUA LINK DATABASE UTAMA & CABANG ANDA DI SINI
-            const SCRIPT_URLS = [
-                'https://script.google.com/macros/s/AKfycbydTg6Qwgjbqhu95AW0IFd7uTRgJughZZgjnunHDjHTrA48vAYj22jYdvQ5RUC7AXG7ng/exec', // Database Cabang 1
-                'https://script.google.com/macros/s/AKfycbxJFC7tabDhR5cC2XiZuCJ5EMZN6jShxvAyVIsOmgilDhE4WEuUjC2r_V93_Jnd_GAs/exec' // Database Cabang 2
-            ];
-
-            try {
-                // Request ke semua database cabang secara bersamaan (Sistem Paralel)
-                const fetchPromises = SCRIPT_URLS.map(url => 
-                    fetch(`${url}?order=${encodeURIComponent(orderIdInput)}`)
-                        .then(response => response.json())
-                        .catch(() => null) // Jika salah satu cabang offline/error, abaikan agar tidak crash
-                );
-
-                // Tunggu respons dari semua database selesai
-                const results = await Promise.all(fetchPromises);
-                
-// ... (setelah const results = await Promise.all(fetchPromises);)
-
-                let trx = null;
-
-                // Cari di semua hasil, jangan langsung berhenti (break) jika tidak perlu.
-                // Jika ingin mencari di cabang 1 DULUAN, kita bisa susun logika seperti ini:
-                
-                // Cek hasil dari SCRIPT_URL utama (Cabang 1) terlebih dahulu
-                if (results[0] && results[0].transactions && results[0].transactions.length > 0) {
-                    trx = results[0].transactions[0];
-                } 
-                // Jika tidak ketemu di cabang 1, baru cek hasil dari Cabang 2
-                else if (results[1] && results[1].transactions && results[1].transactions.length > 0) {
-                    trx = results[1].transactions[0];
-                }
-
-                loader.classList.add('hidden');
-                // ... (lanjutkan ke logika if (trx) { ... })
-
-                // Jika data ditemukan di salah satu cabang
-                if (trx) {
-                    let statusClass = "bg-slate-100 text-slate-700 border-slate-200";
-                    let iconStatus = "fa-clock";
-                    let trxStatusLower = trx.status.toLowerCase();
-                    
-                    if (trxStatusLower.includes('selesai') || trxStatusLower.includes('diambil')) {
-                        statusClass = "bg-tosca-50 text-tosca-700 border-tosca-200"; iconStatus = "fa-check-circle";
-                    } else if (trxStatusLower.includes('proses') || trxStatusLower.includes('cuci')) {
-                        statusClass = "bg-blue-50 text-blue-700 border-blue-200"; iconStatus = "fa-spinner fa-spin";
-                    }
-
-                    let paymentClass = trx.paymentStatus.toLowerCase() === 'lunas' ? 'text-tosca-600 bg-tosca-50 border-tosca-200' : 'text-rose-600 bg-rose-50 border-rose-200';
-
-                    boxHasil.innerHTML = `
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-slate-100 pb-5 mb-5 gap-4">
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nomor Nota</p>
-                                <p class="text-2xl font-black text-slate-800">${trx.id}</p>
-                            </div>
-                            <div class="flex items-center px-4 py-2.5 rounded-xl border-2 ${statusClass}">
-                                <i class="fas ${iconStatus} mr-2"></i>
-                                <span class="font-black uppercase text-sm tracking-wide">${trx.status}</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Pelanggan</p>
-                                <p class="font-bold text-slate-700 text-sm truncate">${trx.customer}</p>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Tgl Masuk</p>
-                                <p class="font-bold text-slate-700 text-sm truncate">${trx.date.substring(0,10)}</p>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Estimasi Selesai</p>
-                                <p class="font-bold text-tosca-600 text-sm truncate">${trx.estimatedPickup || '-'}</p>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Pembayaran</p>
-                                <span class="inline-block px-2 py-1 rounded border text-xs font-black uppercase ${paymentClass}">${trx.paymentStatus}</span>
-                            </div>
-                        </div>
-
-                        ${trx.itemsDetail ? `
-                        <div class="mb-6 bg-white border border-slate-100 shadow-sm rounded-2xl p-4">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2"><i class="fas fa-list-ul mr-1"></i> Detail Pakaian</p>
-                            <p class="text-sm text-slate-600 font-medium whitespace-pre-line leading-relaxed">${trx.itemsDetail}</p>
-                        </div>
-                        ` : ''}
-
-                        <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-2xl p-6 flex justify-between items-center shadow-lg shadow-slate-900/20">
-                            <div>
-                                <p class="text-xs text-slate-400 font-medium mb-1">Total Tagihan</p>
-                                <p class="text-xs font-bold text-slate-300 bg-white/10 inline-block px-2 py-1 rounded">Via: ${trx.method}</p>
-                            </div>
-                            <p class="text-3xl md:text-4xl font-black text-tosca-400">${formatRupiah(trx.total)}</p>
-                        </div>
-                    `;
-                    boxHasil.classList.remove('hidden');
-                } else {
-                    // Jika nomor nota tidak ditemukan di seluruh database cabang
-                    boxHasil.innerHTML = `
-                        <div class="text-center py-8">
-                            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl shadow-inner">
-                                <i class="fas fa-search-minus"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800 mb-2">Nota Tidak Ditemukan</h3>
-                            <p class="text-sm text-slate-500 font-medium">Sistem tidak menemukan nomor nota <strong class="text-slate-800">${orderIdInput}</strong> di cabang manapun.</p>
-                        </div>
-                    `;
-                    boxHasil.classList.remove('hidden');
-                }
-
-            } catch (error) {
-                loader.classList.add('hidden');
-                alert("Koneksi ke server terputus. Silakan coba beberapa saat lagi.");
-            }
-        }
-// 3. LOGIKA OTOMATIS MELACAK DARI LINK (TAUTAN URL)
-        document.addEventListener('DOMContentLoaded', () => {
-            // Tetap muat katalog layanan seperti biasa
-            fetchServices();
-
-            // Ambil parameter '?order=' dari URL website
-            const urlParams = new URLSearchParams(window.location.search);
-            const orderParam = urlParams.get('order');
-            
-            // Jika mendeteksi ada parameter order (Contoh: ?order=FRS-5955)
-            if (orderParam) {
-                const orderInput = document.getElementById('orderId');
-                if (orderInput) {
-                    // Masukkan kode nota ke kolom input secara otomatis
-                    orderInput.value = orderParam.trim().toUpperCase();
-                    
-                    // Jalankan fungsi pencarian data ke Google Sheets
-                    cekStatus();
-                    
-                    // Efek scroll halus langsung menuju ke section komponen pelacakan
-                    setTimeout(() => {
-                        const lacakSection = document.getElementById('lacak');
-                        if (lacakSection) {
-                            lacakSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }, 500); // Diberi jeda sedikit agar proses render data mulus
-                }
-            }
-        });
-    </script>
+    <script src="nota.js"></script>
 </body>
 </html>

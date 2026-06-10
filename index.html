@@ -359,17 +359,24 @@
                 // Tunggu respons dari semua database selesai
                 const results = await Promise.all(fetchPromises);
                 
-                let trx = null; // Wadah untuk menampung data transaksi yang cocok
+// ... (setelah const results = await Promise.all(fetchPromises);)
 
-                // Cari di hasil database mana yang mengembalikan data nota valid
-                for (const data of results) {
-                    if (data && data.transactions && data.transactions.length > 0) {
-                        trx = data.transactions[0];
-                        break; // Jika sudah ketemu di salah satu cabang, hentikan pencarian loop
-                    }
+                let trx = null;
+
+                // Cari di semua hasil, jangan langsung berhenti (break) jika tidak perlu.
+                // Jika ingin mencari di cabang 1 DULUAN, kita bisa susun logika seperti ini:
+                
+                // Cek hasil dari SCRIPT_URL utama (Cabang 1) terlebih dahulu
+                if (results[0] && results[0].transactions && results[0].transactions.length > 0) {
+                    trx = results[0].transactions[0];
+                } 
+                // Jika tidak ketemu di cabang 1, baru cek hasil dari Cabang 2
+                else if (results[1] && results[1].transactions && results[1].transactions.length > 0) {
+                    trx = results[1].transactions[0];
                 }
 
                 loader.classList.add('hidden');
+                // ... (lanjutkan ke logika if (trx) { ... })
 
                 // Jika data ditemukan di salah satu cabang
                 if (trx) {

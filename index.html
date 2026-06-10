@@ -429,7 +429,35 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchServices);
+// 3. LOGIKA OTOMATIS MELACAK DARI LINK (TAUTAN URL)
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tetap muat katalog layanan seperti biasa
+            fetchServices();
+
+            // Ambil parameter '?order=' dari URL website
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderParam = urlParams.get('order');
+            
+            // Jika mendeteksi ada parameter order (Contoh: ?order=FRS-5955)
+            if (orderParam) {
+                const orderInput = document.getElementById('orderId');
+                if (orderInput) {
+                    // Masukkan kode nota ke kolom input secara otomatis
+                    orderInput.value = orderParam.trim().toUpperCase();
+                    
+                    // Jalankan fungsi pencarian data ke Google Sheets
+                    cekStatus();
+                    
+                    // Efek scroll halus langsung menuju ke section komponen pelacakan
+                    setTimeout(() => {
+                        const lacakSection = document.getElementById('lacak');
+                        if (lacakSection) {
+                            lacakSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 500); // Diberi jeda sedikit agar proses render data mulus
+                }
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forresa Owner | Dashboard Keuangan</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased bg-slate-50 text-slate-800">
+
+    <div id="login-screen" class="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-6 w-full max-w-md mx-auto relative overflow-hidden">
+        <div class="absolute -top-16 -left-16 w-48 h-48 rounded-full theme-bg opacity-10 blur-xl"></div>
+        <div class="absolute -bottom-20 -right-20 w-64 h-64 rounded-full theme-bg opacity-10 blur-2xl"></div>
+
+        <div class="w-full bg-white rounded-3xl border border-slate-100 shadow-xl p-6 relative z-10 space-y-6">
+            <div class="text-center space-y-1">
+                <div class="w-14 h-14 bg-slate-800 text-white rounded-2xl flex items-center justify-center text-xl mx-auto shadow-md">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h2 class="text-base font-extrabold text-slate-800 tracking-wide uppercase pt-2 tenant-name-display">Forresa Owner Portal</h2>
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Otorisasi Hak Akses Pemilik</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">🔑 PIN Owner (Default: 12345)</label>
+                    <input type="password" id="input-owner-pin" placeholder="•••••" inputmode="numeric" maxlength="5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-lg font-bold text-slate-800 outline-none focus:border-[#40E0D0] transition-all tracking-widest text-center">
+                </div>
+                <button onclick="submitOwnerLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-slate-700 transition-all text-xs uppercase tracking-wider mt-2">
+                    Masuk ke Dashboard 📈
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <aside class="bg-white border-r border-slate-100 w-full md:w-64 shrink-0 flex flex-col sticky top-0 z-40 md:h-screen shadow-sm md:shadow-none">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center md:block">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-800 text-white rounded-xl flex items-center justify-center text-sm shadow-md">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-extrabold text-slate-800 tracking-tight tenant-name-display">Forresa</h1>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Owner Area</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('nav-menu').classList.toggle('hidden')" class="md:hidden text-slate-400 text-2xl focus:outline-none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav id="nav-menu" class="hidden md:flex flex-col p-4 gap-2 flex-1">
+                <button onclick="switchView('overview')" class="nav-btn theme-bg-light text-[#40E0D0] font-bold flex items-center gap-3 w-full text-left p-3 rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-house w-4 text-center"></i> Ringkasan Analitik
+                </button>
+                <button onclick="switchView('expenses')" class="nav-btn text-slate-500 hover:bg-slate-50 font-bold flex items-center gap-3 w-full text-left p-3 rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-wallet w-4 text-center"></i> Kelola Pengeluaran
+                </button>
+                <button onclick="switchView('settings')" class="nav-btn text-slate-500 hover:bg-slate-50 font-bold flex items-center gap-3 w-full text-left p-3 rounded-xl text-xs transition-all mt-auto">
+                    <i class="fa-solid fa-gear w-4 text-center"></i> Konfigurasi Data
+                </button>
+                <button onclick="logoutOwner()" class="text-rose-500 bg-rose-50 hover:bg-rose-100 font-bold flex items-center gap-3 w-full text-left p-3 rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-power-off w-4 text-center"></i> Keluar
+                </button>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-7xl mx-auto">
+            
+            <section id="view-overview" class="view-section space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">Ringkasan Bisnis</h2>
+                        <p class="text-xs text-slate-400 font-medium">Pantau performa keuangan <span class="tenant-name-display font-bold text-slate-500"></span>.</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="analytics-filter" onchange="applyAnalyticsFilter()" class="bg-white border border-slate-200 text-slate-600 font-bold px-4 py-2.5 rounded-xl text-xs outline-none focus:border-[#40E0D0] flex-1 sm:flex-none">
+                            <option value="today">Hari Ini</option>
+                            <option value="week" selected>7 Hari Terakhir</option>
+                            <option value="month">Bulan Ini</option>
+                            <option value="all">Semua Waktu</option>
+                        </select>
+                        <button onclick="loadDataFromCloud()" class="bg-white border border-slate-200 text-slate-600 font-bold p-2.5 rounded-xl hover:bg-slate-50 transition-all shadow-xs" title="Refresh Data">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pemasukan <span class="filter-label"></span></span>
+                        <h3 id="stat-income" class="text-lg font-black text-slate-800">Rp 0</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pengeluaran <span class="filter-label"></span></span>
+                        <h3 id="stat-expense" class="text-lg font-black text-slate-800">Rp 0</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div class="w-10 h-10 rounded-full bg-cyan-50 text-[#40E0D0] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-wallet"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Laba Bersih <span class="filter-label"></span></span>
+                        <h3 id="stat-profit" class="text-lg font-black text-[#40E0D0]">Rp 0</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-receipt"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pesanan <span class="filter-label"></span></span>
+                        <h3 id="stat-orders" class="text-lg font-black text-slate-800">0 Nota</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm w-full">
+                    <h4 id="chart-title" class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar theme-color"></i> Arus Kas (7 Hari Terakhir)
+                    </h4>
+                    <div class="w-full h-64 relative">
+                        <canvas id="cashflowChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-expenses" class="view-section hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">Kelola Pengeluaran</h2>
+                        <p class="text-xs text-slate-400 font-medium">Catat, edit, dan hapus riwayat pembelanjaan toko.</p>
+                    </div>
+                    <button onclick="openExpenseModal()" class="theme-bg text-white font-bold px-5 py-2.5 rounded-xl text-xs hover:opacity-90 transition-all shadow-md shadow-cyan-100 flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah Pengeluaran
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3 rounded-tl-xl">Tanggal</th>
+                                    <th class="px-4 py-3">ID Log</th>
+                                    <th class="px-4 py-3">Keterangan</th>
+                                    <th class="px-4 py-3">Sumber Dana</th>
+                                    <th class="px-4 py-3 text-right">Nominal (Rp)</th>
+                                    <th class="px-4 py-3 text-center rounded-tr-xl">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-table-body" class="divide-y divide-slate-100 font-medium text-slate-600">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-settings" class="view-section hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-800">Konfigurasi Data</h2>
+                    <p class="text-xs text-slate-400 font-medium">Hubungkan Dashboard Owner ke Database Apps Script dan kelola cabang.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 h-max">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-link theme-color"></i> Tautan Database Aktif
+                        </h3>
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3 text-amber-700 text-xs">
+                            <i class="fa-solid fa-circle-info mt-0.5 text-base"></i>
+                            <p>Masukkan URL Web App dari cabang yang ingin Anda pantau analitiknya saat ini.</p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">URL Google Apps Script</label>
+                            <input type="text" id="owner-setting-url" placeholder="https://script.google.com/macros/s/..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-[#40E0D0]">
+                        </div>
+                        <button onclick="saveOwnerSettings()" class="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-slate-700 transition-all text-xs flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Terapkan & Sinkronisasi
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-network-wired theme-color"></i> Daftar Link AppScript Cabang
+                        </h3>
+                        
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nama Cabang</label>
+                                    <input type="text" id="branch-name" placeholder="Cth: Cabang Utama" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-[#40E0D0]">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">URL AppScript</label>
+                                    <input type="text" id="branch-url" placeholder="https://script..." class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-[#40E0D0]">
+                                </div>
+                            </div>
+                            <button onclick="addBranch()" class="w-full bg-cyan-50 border border-cyan-100 text-cyan-600 font-bold py-2.5 rounded-xl hover:bg-cyan-100 transition-all text-xs flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Simpan ke Daftar Cabang
+                            </button>
+                        </div>
+
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1" id="branch-list-container">
+                            </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="expenseModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-2xl max-w-sm w-full space-y-4">
+            <h3 class="font-extrabold text-slate-800 text-base flex items-center gap-2"><i class="fa-solid fa-wallet text-rose-500"></i> Form Pengeluaran</h3>
+            <div class="space-y-3 text-left">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tanggal (Biarkan jika hari ini)</label>
+                    <input type="date" id="form-exp-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Keperluan Pembelanjaan</label>
+                    <input type="text" id="form-exp-name" placeholder="Contoh: Bayar Listrik / Beli Sabun" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nominal Biaya (Rp)</label>
+                    <input type="number" id="form-exp-amount" placeholder="Contoh: 150000" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Sumber Dana yang Digunakan</label>
+                    <select id="form-exp-source" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-700 outline-none focus:border-rose-400">
+                        <option value="Kas Laci (Tunai)">Kas Laci (Tunai)</option>
+                        <option value="Saldo Bank / QRIS">Saldo Bank / QRIS</option>
+                        <option value="Dana Pribadi (Owner)">Dana Pribadi (Owner)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="document.getElementById('expenseModal').classList.add('hidden')" class="w-full bg-slate-100 text-slate-500 font-bold py-3 rounded-xl text-xs hover:bg-slate-200 transition-all">Batal</button>
+                <button onclick="saveExpense()" class="w-full bg-rose-500 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-rose-200 hover:bg-rose-600 transition-all">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="liveAlert" class="hidden fixed top-6 right-6 w-full max-w-xs bg-slate-900/95 text-white p-4 rounded-2xl shadow-xl z-50 flex items-center gap-3 border border-slate-800 transition-all">
+        <div class="w-8 h-8 rounded-xl theme-bg text-white flex items-center justify-center text-xs"><i class="fa-solid fa-bell"></i></div>
+        <div class="flex-1 text-left">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sistem Info</p>
+            <p id="alertMessage" class="text-xs font-medium text-slate-100 mt-0.5">Berhasil.</p>
+        </div>
+    </div>
+
+    <script src="owner.js"></script>
+</body>
+</html>

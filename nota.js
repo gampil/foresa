@@ -1,10 +1,15 @@
-
-        // URL UNTUK LIST LAYANAN HARGA (Menu)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydTg6Qwgjbqhu95AW0IFd7uTRgJughZZgjnunHDjHTrA48vAYj22jYdvQ5RUC7AXG7ng/exec';
+        // URL MASTER DB (Untuk Info Kontak)
+        const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwidT5jhAd4vtRpOiqRf0C5yc8quxuzTioutoYdF9d2NufVCbtS0moyvH6GCrhOxkgx/exec";
         
-        // DUA URL CABANG UNTUK PENCARIAN NOTA
+        // URL CABANG 1 (Untuk Layanan & Harga)
         const SCRIPT_URL_1 = "https://script.google.com/macros/s/AKfycbxJFC7tabDhR5cC2XiZuCJ5EMZN6jShxvAyVIsOmgilDhE4WEuUjC2r_V93_Jnd_GAs/exec";
+        
+        // URL CABANG 2 (Untuk Pelacakan)
         const SCRIPT_URL_2 = "https://script.google.com/macros/s/AKfycbwORvBmZ06otsQH_gbhFcPQKcy8GLSmk-1BmIVaFFKg2c7loRRhwDfVwF7qcxyJ5OC6/exec";
+
+        let allPublicServices = [];
+        let activePublicCategory = 'Semua';
+        let globalPublicPhone = "6281234567890"; // Fallback jika gagal muat
 
         // Toggle Mobile Menu
         function toggleMobileMenu() {
@@ -17,58 +22,159 @@
         };
 
         // ==============================================
-        // 1. RENDER LAYANAN KARTU GRID (Original)
+        // 1. RENDER LAYANAN & INFO DARI MASTER (DUAL FETCH)
         // ==============================================
         async function fetchServices() {
+            // A. Trik Info Dari Master DB (Memuat SEMUA Cabang)
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                const masterRes = await fetch(`${MASTER_SCRIPT_URL}?action=getMasterData&t=${Date.now()}`);
+                const masterData = await masterRes.json();
+                
+                if (masterData && masterData.branches) {
+                    // Cetak semua cabang ke Footer
+                    renderAllBranches(masterData.branches);
+                    
+                    // Tetapkan Cabang 1 sebagai nomor default untuk tombol WA hijau yang melayang di pojok
+                    const targetBranch = masterData.branches.find(b => b.url === SCRIPT_URL_1) || masterData.branches[0];
+                    if (targetBranch && targetBranch.phone) {
+                        globalPublicPhone = targetBranch.phone.replace(/[-+ _]/g, "");
+                        if (globalPublicPhone.startsWith("0")) globalPublicPhone = "62" + globalPublicPhone.slice(1);
+                        
+                        const waBtn = document.getElementById('floating-wa');
+                        if (waBtn) waBtn.href = `https://wa.me/${globalPublicPhone}`;
+                    }
+                }
+            } catch (e) {
+                console.log("Gagal sinkron Master DB info kontak:", e);
+                const container = document.getElementById('branch-list-container');
+                if (container) container.innerHTML = '<p class="text-sm text-rose-400 italic">Gagal memuat lokasi cabang.</p>';
+            }
+
+            // B. Tarik Daftar Layanan dari Cabang 1
+            try {
+                const response = await fetch(`${SCRIPT_URL_1}?action=read`);
                 const data = await response.json();
-                renderServices(data.customServices);
+                allPublicServices = data.customServices || [];
+                
+                renderPublicCategories();
+                renderServices();
             } catch (error) {
                 document.getElementById('loadingLayanan').innerHTML = `
                     <div class="bg-red-50 text-red-500 px-6 py-4 rounded-xl border border-red-200 text-center max-w-sm mx-auto">
                         <i class="fas fa-exclamation-triangle mb-2 text-3xl"></i>
                         <p class="font-bold">Koneksi Gagal</p>
-                        <p class="text-sm mt-1">Tidak dapat memuat data dari server kasir.</p>
+                        <p class="text-sm mt-1">Tidak dapat memuat layanan dari server Cabang 1.</p>
                     </div>`;
             }
         }
 
-        function renderServices(services) {
+        // FUNGSI BARU: Mencetak semua list cabang ke HTML
+        function renderAllBranches(branches) {
+            const container = document.getElementById('branch-list-container');
+            if (!container) return;
+            
+            if (!branches || branches.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-400 italic">Belum ada cabang terdaftar di Master.</p>';
+                return;
+            }
+            
+            // Looping semua cabang yang ada di Master DB
+            container.innerHTML = branches.map(b => {
+                let phoneClean = b.phone ? b.phone.replace(/[-+ _]/g, "") : "";
+                if (phoneClean.startsWith("0")) phoneClean = "62" + phoneClean.slice(1);
+                
+                return `
+                <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50 text-sm hover:bg-slate-700/50 transition-all">
+                    <h4 class="font-bold text-tosca-400 mb-1 flex items-center gap-2">
+                        <i class="fas fa-store text-xs"></i> ${b.name.toUpperCase()}
+                    </h4>
+                    <div class="space-y-1.5 mt-2">
+                        <p class="text-slate-300 text-[11px] leading-relaxed flex items-start">
+                            <i class="fas fa-map-marker-alt text-tosca-500/70 mr-2 mt-0.5"></i> 
+                            <span class="flex-1">${b.address || 'Alamat belum diatur'}</span>
+                        </p>
+                        <p class="text-slate-300 text-[11px] flex items-center">
+                            <i class="fab fa-whatsapp text-tosca-500/70 mr-2 text-sm"></i> 
+                            <a href="https://wa.me/${phoneClean}" target="_blank" class="hover:text-white hover:underline transition-all font-medium">
+                                +${phoneClean || '-'}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+
+        // ==============================================
+        // 1.5 FITUR FILTER KATEGORI LAYANAN PUBLIC
+        // ==============================================
+        function renderPublicCategories() {
+            const catContainer = document.getElementById('service-categories-public');
+            if (!catContainer) return;
+            
+            catContainer.classList.remove('hidden');
+            
+            // Ambil nama kategori unik dari data
+            const uniqueCategories = ['Semua', ...new Set(allPublicServices.map(s => s.type))];
+            
+            catContainer.innerHTML = uniqueCategories.map(cat => {
+                const isActive = activePublicCategory === cat;
+                // Hilangkan whitespace-nowrap agar bisa membungkus ke baris bawah saat layar sempit
+                const baseClass = "px-4 py-1.5 sm:px-6 sm:py-2 rounded-full text-[11px] sm:text-sm font-semibold transition-all duration-300 border shadow-sm cursor-pointer";
+                const activeClass = isActive 
+                    ? "bg-tosca-500 text-white border-tosca-500 scale-105" 
+                    : "bg-white text-slate-500 border-slate-200 hover:bg-tosca-50 hover:border-tosca-300 hover:text-tosca-600";
+                    
+                return `<button onclick="setPublicCategory('${cat}')" class="${baseClass} ${activeClass}">${cat}</button>`;
+            }).join('');
+        }
+
+        function setPublicCategory(cat) {
+            activePublicCategory = cat;
+            renderPublicCategories(); // Ubah warna tombol
+            renderServices();         // Tampilkan ulang sesuai filter
+        }
+
+        function renderServices() {
             const container = document.getElementById('services-container');
             document.getElementById('loadingLayanan').classList.add('hidden');
             container.classList.remove('hidden');
 
-            if (!services || services.length === 0) {
-                container.innerHTML = `<p class="col-span-full text-center font-medium text-slate-500 py-10">Belum ada layanan yang ditambahkan pada kasir.</p>`;
+            // Filter data sesuai tombol yang diklik
+            let displayServices = activePublicCategory === 'Semua' 
+                ? allPublicServices 
+                : allPublicServices.filter(s => s.type === activePublicCategory);
+
+            if (!displayServices || displayServices.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-center font-medium text-slate-500 py-10 w-full">Belum ada layanan yang ditambahkan pada kategori ini.</p>`;
                 return;
             }
 
             let html = '';
-            services.forEach(service => {
-                let typeColor = service.type.toLowerCase() === 'kiloan' ? 'text-amber-600 bg-amber-50 border-amber-200' : 
-                                service.type.toLowerCase() === 'satuan' ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-tosca-600 bg-tosca-50 border-tosca-200';
-
+            displayServices.forEach(service => {
+                // Desain Baru: 2 Kolom, Compact, Elegan Full Tosca
                 html += `
-                    <div class="bg-white rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 p-6 border border-slate-100 flex flex-col h-full relative overflow-hidden group">
-                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-tosca-50 rounded-full opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-500 z-0"></div>
+                    <div class="bg-gradient-to-br from-white to-tosca-50/50 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 p-3 sm:p-5 border border-tosca-200 flex flex-col h-full relative overflow-hidden group">
+                        
+                        <div class="absolute -top-10 -right-10 w-24 h-24 bg-tosca-100 rounded-full opacity-50 group-hover:scale-150 transition-all duration-500 z-0"></div>
                         
                         <div class="relative z-10 flex flex-col h-full">
-                            <div class="mb-4">
-                                <span class="inline-block px-3 py-1.5 text-[10px] font-black uppercase tracking-widest ${typeColor} border rounded-lg">
+                            <div class="mb-2.5">
+                                <span class="inline-block px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-tosca-700 bg-tosca-100/70 border border-tosca-200 rounded-md">
                                     ${service.type}
                                 </span>
                             </div>
                             
-                            <h3 class="text-lg font-bold mb-6 text-slate-800 leading-snug group-hover:text-tosca-600 transition-colors">${service.name}</h3>
+                            <h3 class="text-xs sm:text-base font-bold mb-3 sm:mb-4 text-slate-800 leading-snug group-hover:text-tosca-600 transition-colors line-clamp-2">${service.name}</h3>
                             
-                            <div class="mt-auto border-t border-slate-100/80 pt-5 flex justify-between items-center">
+                            <div class="mt-auto border-t border-tosca-100 pt-2.5 sm:pt-3 flex justify-between items-end gap-1">
                                 <div>
-                                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Tarif</p>
-                                    <span class="text-xl font-black text-slate-800">${formatRupiah(service.price)}</span>
+                                    <p class="text-[8px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5 sm:mb-1">Tarif</p>
+                                    <span class="text-[12px] sm:text-lg font-black text-tosca-600">${formatRupiah(service.price)}</span>
                                 </div>
-                                <a href="https://wa.me/6281234567890?text=Halo%20Foresa,%20saya%20ingin%20pesan%20layanan%20${service.name}" target="_blank" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-tosca-500 hover:bg-tosca-500 hover:text-white transition-all duration-300 border border-slate-200 hover:border-tosca-500 shadow-sm">
-                                    <i class="fab fa-whatsapp text-lg"></i>
+                                <a href="https://wa.me/${globalPublicPhone}?text=Halo%20Foresa,%20saya%20ingin%20pesan%20layanan%20${encodeURIComponent(service.name)}" target="_blank" class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-tosca-500 flex items-center justify-center text-white hover:bg-tosca-600 transition-all shadow-sm shrink-0" title="Pesan via WhatsApp">
+                                    <i class="fab fa-whatsapp text-sm sm:text-base"></i>
                                 </a>
                             </div>
                         </div>
@@ -77,6 +183,7 @@
             });
             container.innerHTML = html;
         }
+
 
         // ==============================================
         // 2. LOGIKA PELACAKAN (Dari nota.js)

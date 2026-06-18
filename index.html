@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foresa Laundry | Bersih, Segar, Praktis</title>
+        <!-- 1. SEO Dasar -->
+    <meta name="description" content="Foresa Laundry adalah layanan laundry profesional, bersih, wangi, dan rapi. Tersedia layanan antar-jemput sekitar karawang dan cek status cucian online secara real-time.">
+    <meta name="keywords" content="laundry terdekat, laundry antar jemput sekitar karawang, laundry kiloan, cuci setrika, laundry express, Foresa Laundry">
+    <meta name="author" content="Foresa Laundry">
+    <meta name="robots" content="index, follow">
+
+    <!-- 2. Meta Tag Verifikasi Google Search Console (Nanti kodenya didapat dari Google) -->
+    <meta name="google-site-verification" content="MASUKKAN_KODE_VERIFIKASI_GOOGLE_DISINI" />
+
+    <!-- 3. Open Graph (Agar cantik saat link disebar di WA/Facebook) -->
+    <meta property="og:title" content="Foresa Laundry | Bersih, Segar, Praktis">
+    <meta property="og:description" content="Layanan laundry antar-jemput profesional karawang. Cek status cucian Anda langsung dari HP!">
+    <meta property="og:image" content="https://foresa.my.id/logo/foresa.png">
+    <meta property="og:url" content="https://foresa.my.id">
+    <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -265,13 +281,15 @@
                 </div>
             </div>
 
-            <div id="loadingLayanan" class="flex flex-col justify-center items-center py-20">
+                        <div id="loadingLayanan" class="flex flex-col justify-center items-center py-20">
                 <i class="fas fa-circle-notch fa-spin text-5xl text-tosca-500 mb-4"></i>
-                <p class="text-slate-500 font-medium">Memuat katalog layanan...</p>
+                <p class="text-slate-500 font-medium">Memuat katalog layanan & informasi...</p>
             </div>
 
-            <div id="services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
-                </div>
+            <div id="service-categories-public" class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 hidden"></div>
+
+            <div id="services-container" class="grid grid-cols-2 gap-3 sm:gap-5 hidden max-w-3xl mx-auto">
+            </div>
         </div>
     </section>
 
@@ -298,20 +316,16 @@
                     </ul>
                 </div>
 
-                <div>
-                    <h3 class="text-white font-bold mb-6 tracking-wider uppercase text-sm">Informasi Kontak</h3>
-                    <ul class="space-y-4 text-sm">
-                        <li class="flex items-start bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-                            <i class="fas fa-map-marker-alt mt-1 mr-4 text-tosca-400 text-lg"></i>
-                            <span>Jl. Alamat Foresa No. 123, Kabupaten/Kota, Kode Pos 12345</span>
-                        </li>
-                        <li class="flex items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-                            <i class="fab fa-whatsapp mr-4 text-tosca-400 text-xl"></i>
-                            <span class="font-bold">+62 812 3456 7890</span>
-                        </li>
-                    </ul>
+                 <div>
+                    <h3 class="text-white font-bold mb-6 tracking-wider uppercase text-sm">Lokasi Cabang Kami</h3>
+                    <div id="branch-list-container" class="space-y-3 max-h-[250px] overflow-y-auto pr-2 scrollbar-hide">
+                        <div class="animate-pulse bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+                            <p class="h-4 bg-slate-600 rounded w-1/2 mb-2"></p>
+                            <p class="h-3 bg-slate-700 rounded w-full"></p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
             
             <div class="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-medium">
                 <p>&copy; 2026 Foresa Laundry. All rights reserved.</p>
@@ -323,9 +337,45 @@
         </div>
     </footer>
 
-    <a href="https://wa.me/6281234567890" target="_blank" class="fixed bottom-6 right-6 bg-tosca-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-tosca-500/40 hover:-translate-y-2 hover:scale-110 transition-all duration-300 z-50 border-2 border-white">
+    <a id="floating-wa" href="#" target="_blank" class="fixed bottom-6 right-6 bg-tosca-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-tosca-500/40 hover:-translate-y-2 hover:scale-110 transition-all duration-300 z-[90] border-2 border-white">
         <i class="fab fa-whatsapp text-3xl"></i>
     </a>
+
     <script src="nota.js"></script>
+        <!-- Schema Markup untuk Local Business SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "DryCleaningOrLaundry",
+      "name": "Foresa Laundry",
+      "image": "https://foresa.my.id/logo/foresa.png",
+      "@id": "https://foresa.my.id",
+      "url": "https://foresa.my.id",
+      "telephone": "+6282125046787",
+      "priceRange": "Rp.5.000",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Jl. Ciherang No.172, Wadas, Telukjambe Timur, Karawang, Jawa Barat 41361",
+        "addressLocality": "Karawang",
+        "addressRegion": "Jawa Barat",
+        "postalCode": "41337",
+        "addressCountry": "Indonesia"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -6.338982, 
+        "longitude": 107.275316
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "08:00",
+        "closes": "20:00"
+      }
+    }
+    </script>
+
 </body>
 </html>
